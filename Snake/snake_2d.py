@@ -18,6 +18,18 @@ class Snake:
 		2 -> food'''
 		self.grid = np.zeros((GRID_SIZE, GRID_SIZE), dtype='int32')
 
+		'''y->0 1 2 3 4
+		x = 0[0 0 0 0 0]
+		x = 1[0 0 0 0 0]
+		x = 2[0 1 1 0 0]
+		x = 3[0 0 0 0 0]
+		x = 4[0 0 0 0 0]
+		   0
+		   |
+		1-----3
+		   |
+		   2
+		'''
 		tmp = self.find_empty_cells(k=2)
 		self.pos = [tmp[0]]		# pos[0] is head
 		self.food = tmp[1]
@@ -29,7 +41,7 @@ class Snake:
 
 		self.length = len(self.pos)
 		self.is_alive = True
-		self.length_limit = GRID_SIZE*GRID_SIZE
+		self.length_limit = GRID_SIZE*GRID_SIZE - 1
 		self.ate_food = False
 		self.cell_width = SCREEN_WIDTH//GRID_SIZE
 		self.cell_height = SCREEN_HEIGHT//GRID_SIZE
@@ -79,7 +91,7 @@ class Snake:
 			head = self.pos[0]
 			dirn = self.dir_dict[self.direction]
 			new_head = (head[0] + dirn[0],
-					head[1] + dirn[1])
+					head[1] + dirn[1])		# (1, 0)head, dirn(1, 0)
 			
 			self.check_collision(new_head)
 

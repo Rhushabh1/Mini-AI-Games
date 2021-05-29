@@ -11,8 +11,8 @@ class CustomEnv(gym.Env):
 		self.mode = mode
 		self.grid_size = 20
 		self.pygame = Pygame2D(self.grid_size, mode=self.mode)
-		self.action_space = spaces.Discrete(3)
-		self.observation_space = spaces.MultiDiscrete([3 for _ in range(self.grid_size*self.grid_size)])
+		self.action_space = spaces.Discrete(3)		# 0, 1, 2
+		self.observation_space = spaces.MultiDiscrete([4 for _ in range(self.grid_size*self.grid_size)])
 
 	def reset(self):
 		'''Re-initialise the pygame object
