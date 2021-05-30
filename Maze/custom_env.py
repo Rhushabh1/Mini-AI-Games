@@ -1,7 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
-from snake_2d import Pygame2D
+from maze_test import Pygame2D
 
 class CustomEnv(gym.Env):
 	def __init__(self, mode='bot'):
@@ -12,7 +12,7 @@ class CustomEnv(gym.Env):
 		self.grid_size = 20
 		self.pygame = Pygame2D(self.grid_size, mode=self.mode)
 		self.action_space = spaces.Discrete(4)		# 0-->front, 1-->left, 2-->back, 3-->right
-		self.observation_space = spaces.MultiDiscrete([4 for _ in range(self.grid_size*self.grid_size)])
+		self.observation_space = spaces.MultiDiscrete([5 for _ in range(self.grid_size*self.grid_size)])
 
 	def reset(self):
 		'''Re-initialise the pygame object
