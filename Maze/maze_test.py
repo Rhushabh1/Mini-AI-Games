@@ -59,6 +59,17 @@ class Tester:
 		self.cell_width = SCREEN_WIDTH//GRID_SIZE
 		self.cell_height = SCREEN_HEIGHT//GRID_SIZE
 
+		self.wall_img = pygame.image.load("./maze_assets/wall.png")
+		self.path_img = pygame.image.load("./maze_assets/path.png")
+		self.start_img = pygame.image.load("./maze_assets/start.png")
+		self.end_img = pygame.image.load("./maze_assets/end.png")
+		self.player_img = pygame.image.load("./maze_assets/player.png")
+		self.wall_img = pygame.transform.scale(self.wall_img, (self.cell_width, self.cell_height))
+		self.path_img = pygame.transform.scale(self.path_img, (self.cell_width, self.cell_height))
+		self.start_img = pygame.transform.scale(self.start_img, (self.cell_width, self.cell_height))
+		self.end_img = pygame.transform.scale(self.end_img, (self.cell_width, self.cell_height))
+		self.player_img = pygame.transform.scale(self.player_img, (self.cell_width, self.cell_height))
+
 		self.grid[self.start] = 3
 		self.grid[self.end] = 4
 		self.grid[self.pos] = 2
@@ -123,29 +134,42 @@ class Tester:
 	def draw(self, screen):
 		'''draw the snake and food on the screen'''
 		screen.fill((0, 0, 0))
+
+		for x in range(self.grid.shape[0]):
+			for y in range(self.grid.shape[1]):
+				# pygame.draw.rect(screen, red, (y*self.cell_width,
+				# 							x*self.cell_height,
+				# 							self.cell_width, 
+				# 							self.cell_height))
+				screen.blit(self.path_img, (y*self.cell_width, x*self.cell_height))
+
 		x_arr, y_arr = np.where(self.grid==0)
 		for i in range(x_arr.shape[0]):
 			x, y = x_arr[i],y_arr[i]
-			pygame.draw.rect(screen, red, (y*self.cell_width,
-										x*self.cell_height,
-										self.cell_width, 
-										self.cell_height))
+			# pygame.draw.rect(screen, red, (y*self.cell_width,
+			# 							x*self.cell_height,
+			# 							self.cell_width, 
+			# 							self.cell_height))
+			screen.blit(self.wall_img, (y*self.cell_width, x*self.cell_height))
 
 		x, y = self.end
-		pygame.draw.rect(screen, green, (y*self.cell_width,
-										x*self.cell_height,
-										self.cell_width, 
-										self.cell_height))
+		# pygame.draw.rect(screen, green, (y*self.cell_width,
+		# 								x*self.cell_height,
+		# 								self.cell_width, 
+		# 								self.cell_height))
+		screen.blit(self.end_img, (y*self.cell_width, x*self.cell_height))
 		x, y = self.start
-		pygame.draw.rect(screen, green, (y*self.cell_width,
-										x*self.cell_height,
-										self.cell_width, 
-										self.cell_height))
+		# pygame.draw.rect(screen, green, (y*self.cell_width,
+		# 								x*self.cell_height,
+		# 								self.cell_width, 
+		# 								self.cell_height))
+		screen.blit(self.start_img, (y*self.cell_width, x*self.cell_height))
 		x, y = self.pos
-		pygame.draw.rect(screen, blue, (y*self.cell_width,
-										x*self.cell_height,
-										self.cell_width, 
-										self.cell_height))
+		# pygame.draw.rect(screen, blue, (y*self.cell_width,
+		# 								x*self.cell_height,
+		# 								self.cell_width, 
+		# 								self.cell_height))
+		screen.blit(self.player_img, (y*self.cell_width, x*self.cell_height))
 
 
 class Pygame2D:
