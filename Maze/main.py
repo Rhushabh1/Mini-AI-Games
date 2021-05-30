@@ -34,13 +34,14 @@ def play_human(env, max_episodes, max_try):
 if __name__ == "__main__":
 	MAX_EPISODES = 30
 	MAX_TRY = 10000
+	GRID_SIZE = 10
 
 	parser = argparse.ArgumentParser(description='Process some integers.')
 	parser.add_argument('--mode', metavar='M', type=str, default='bot', help='Enter Game mode ["bot", "human"]')
 	args = parser.parse_args()
 	print(args.mode)
 
-	env = CustomEnv(args.mode)
+	env = CustomEnv(GRID_SIZE, args.mode)
 	if args.mode == 'human':
 		total_scores = play_human(env, MAX_EPISODES, MAX_TRY)
 	else:
