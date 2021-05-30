@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 from snake_2d import Pygame2D
-
+#hello
 class CustomEnv(gym.Env):
 	def __init__(self, mode='bot'):
 		'''Set the action and observation spaces
