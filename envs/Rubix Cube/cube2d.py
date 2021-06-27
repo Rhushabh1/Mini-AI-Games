@@ -4,7 +4,6 @@ import numpy as np
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
-GRID_SIZE = 20
 red = (255, 0, 0)
 orange = (255, 153, 0)
 green = (0, 255, 0)
@@ -15,7 +14,7 @@ colors = {'R':red, 'O':orange, 'B':blue, 'G':green, 'W':white, 'Y':yellow}
 
 
 class Cube:
-	def __init__(self):
+	def __init__(self, level=200):
 		'''Initialise the Rubik's cube
 		Has 6 faces
 		0 -> red
@@ -69,17 +68,22 @@ class Cube:
 		}
 
 		self.moves = {
-			0: ['F'], 6: ['F']*2, 12: ['F']*3,
-			1: ['B'], 7: ['B']*2, 13: ['B']*3,
-			2: ['U'], 8: ['U']*2, 14: ['U']*3,
-			3: ['D'], 9: ['D']*2, 15: ['D']*3,
-			4: ['L'], 10: ['L']*2, 16: ['L']*3,
-			5: ['R'], 11: ['R']*2, 17: ['R']*3,
+			# clockwise (F, B, U, D, L, R)
+			0: ['F'], 1: ['B'], 2: ['U'], 3: ['D'], 4: ['L'], 5: ['R'],
+			# double (F2, B2, U2, D2, L2, R2)
+			6: ['F']*2, 7: ['B']*2, 8: ['U']*2, 9: ['D']*2, 10: ['L']*2, 11: ['R']*2, 
+			# anti-clockwise (F', B', U', D', L', R')
+			12: ['F']*3, 13: ['B']*3, 14: ['U']*3, 15: ['D']*3, 16: ['L']*3, 17: ['R']*3,
+			# slice rotations (M, E, S)
+			18: ['R','L','L','L'], 19: ['U','D','D','D'], 20: ['B','F','F','F'],
+			# reverse slice rotations (M', E', S')
+			21: ['L','R','R','R'], 22: ['D','U','U','U'], 23: ['F','B','B','B'],
 		}
 
-		self.good_corners = [0, 2, 5, 7]				# R/O, B/G, W/Y
-		self.even_corners = np.array([0, 1, 0, 1])		# R/O, W/Y, B/G
+		self.good_corners = [0, 2, 5, 7]				# good -> (R/O)(B/G)(W/Y), bad -> (R/O)(W/Y)(B/G)
+		self.even_corners = np.array([0, 1, 0, 1])		
 
+		self.level = level
 		self.is_solved = True
 		self.action_called = False
 		self.has_moved = False
@@ -90,7 +94,46 @@ class Cube:
 
 	def scramble_cube(self):
 		# scramble the cube for the player to solve
+		seq = []
+		moves = np.random.choice(24, max(5, random.randrange(self.level)), replace=True)
+		for move in moves:
+			seq.extend(self.moves[move])
+		self.move(seq)
+		print("Scramble: {}".format(seq))
 		self.is_solved = False
+
+	def move(self, action_list):
+		'''move faces according the action
+		Corners:
+			(C) clockwise = 0->1->2->...
+			(A) anit-clockwise = 2->1->0->...
+			(G) good corners 		= 	[0, 0, 1, 1]
+			(E) even pos or corners = 	[0, 1, 0, 1] constant for a face
+			Clock or Anti?			=	[A, C, C, A] XOR op
+
+		Edges:
+			flip only when F/B
+			else don't flip
+		'''
+		self.action_called = True
+		for action in action_list:
+			corner_list = self.corner_face_dict[action]
+			edge_list = self.edge_face_dict[action]
+
+			# orientation update
+			if action not in ['U', 'D']:
+				good = np.array([c in self.good_corners for c in self.corners[corner_list]])
+				clock = np.bitwise_xor(good, self.even_corners)
+				self.corners_orient[corner_list] = ( self.corners_orient[corner_list] + (clock) + (-1)*(1 - clock) )%3
+
+			if action in ['F', 'B']:
+				self.edges_orient[edge_list] = 1 - self.edges_orient[edge_list]
+
+			# position update
+			self.corners[corner_list] = np.roll(self.corners[corner_list], 1)
+			self.corners_orient[corner_list] = np.roll(self.corners_orient[corner_list], 1)
+			self.edges[edge_list] = np.roll(self.edges[edge_list], 1)
+			self.edges_orient[edge_list] = np.roll(self.edges_orient[edge_list], 1)
 
 	def corners_edges_to_cube(self):
 		# print(self.corners, self.corners_orient, self.edges, self.edges_orient)
@@ -131,40 +174,6 @@ class Cube:
 
 						self.cube[idx, i, j] = color[(bad_i+(1-orient)+face_offset)%2]
 
-
-	def move(self, action_list):
-		'''move faces according the action
-		Corners:
-			(C) clockwise = 0->1->2->...
-			(A) anit-clockwise = 2->1->0->...
-			(G) good corners 		= 	[0, 0, 1, 1]
-			(E) even pos or corners = 	[0, 1, 0, 1] constant for a face
-			Clock or Anti?			=	[A, C, C, A] XOR op
-
-		Edges:
-			flip only when F/B
-			else don't flip
-		'''
-		self.action_called = True
-		for action in action_list:
-			corner_list = self.corner_face_dict[action]
-			edge_list = self.edge_face_dict[action]
-
-			# orientation update
-			if action not in ['U', 'D']:
-				good = np.array([c in self.good_corners for c in self.corners[corner_list]])
-				clock = np.bitwise_xor(good, self.even_corners)
-				self.corners_orient[corner_list] = ( self.corners_orient[corner_list] + (clock) + (-1)*(1 - clock) )%3
-
-			if action in ['F', 'B']:
-				self.edges_orient[edge_list] = 1 - self.edges_orient[edge_list]
-
-			# position update
-			self.corners[corner_list] = np.roll(self.corners[corner_list], 1)
-			self.corners_orient[corner_list] = np.roll(self.corners_orient[corner_list], 1)
-			self.edges[edge_list] = np.roll(self.edges[edge_list], 1)
-			self.edges_orient[edge_list] = np.roll(self.edges_orient[edge_list], 1)
-
 	def update(self):
 		# do something
 		if self.action_called:
@@ -193,10 +202,8 @@ class Cube:
 
 
 class Pygame2D:
-	def __init__(self, grid_size=20, mode='bot'):
+	def __init__(self, mode='bot', level=200):
 		'''Initialise pygame and display attributes'''
-		global GRID_SIZE
-		GRID_SIZE = grid_size
 		allowed_modes = ['bot', 'human']
 		assert mode in allowed_modes, "Wrong mode for gym env. Should be from ['bot', 'human']"
 
@@ -210,13 +217,41 @@ class Pygame2D:
 		pygame.display.set_caption("Rubiks Cube")
 		self.clock = pygame.time.Clock()
 		self.font = pygame.font.SysFont('Arial', 30)
-		self.rubiks = Cube()
+		self.rubiks = Cube(level)
 		self.game_speed = 10
 		if self.mode == 'human':
 			self.game_speed = 60
 
 		self.finish_reward = 1000
 		self.move_penalty = -1
+
+		self.description = "\
+			\n========KEY-MAP=========\
+			\nF 		: move F\
+			\nB 		: move B\
+			\nU 		: move U\
+			\nD 		: move D\
+			\nL 		: move L\
+			\nR 		: move R\
+			\nCtrl + F 	: move F2\
+			\nCtrl + B 	: move B2\
+			\nCtrl + U 	: move U2\
+			\nCtrl + D 	: move D2\
+			\nCtrl + L 	: move L2\
+			\nCtrl + R 	: move R2\
+			\nShift + F 	: move F\'\
+			\nShift + B 	: move B\'\
+			\nShift + U 	: move U\'\
+			\nShift + D 	: move D\'\
+			\nShift + L 	: move L\'\
+			\nShift + R 	: move R\'\
+			\nM 		: move M\
+			\nE 		: move E\
+			\nS 		: move S\
+			\nShift + M 	: move M\'\
+			\nShift + E 	: move E\'\
+			\nShift + S 	: move S\'\
+			\n========================"
 
 	def get_human_action(self):
 		assert self.mode == 'human', "return_action() not usable without 'human' mode for gym env."
@@ -252,7 +287,14 @@ class Pygame2D:
 
 	def observe(self):
 		'''return next state upon taking action'''
-		return self.rubiks.cube.flatten()
+		state = self.rubiks.cube.flatten()
+		state[state=='R'] = 0
+		state[state=='O'] = 1
+		state[state=='B'] = 2
+		state[state=='G'] = 3
+		state[state=='W'] = 4
+		state[state=='Y'] = 5
+		return state.astype(int)
 
 	def view(self):
 		'''render the state of the game on the screen'''
@@ -269,27 +311,92 @@ class Pygame2D:
 		self.clock.tick(self.game_speed)
 
 	def run_game_loop(self):
+		'''
+		clockwise -> F
+		double 	-> CTRL + F
+		anti-clockwise	-> SHIFT + F
+		slice rotations	-> M
+		reverse slice rotations	-> SHIFT + M
+		'''
+
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				self.done = True
 			if event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_q:
+				if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
 					self.done = True
 				if self.mode == 'human':
+
+					mods = pygame.key.get_mods()
+
 					if event.key == pygame.K_RETURN:
 						self.done = True
+
 					elif event.key == pygame.K_f:
-						self.human_action = 0
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 12
+						elif mods & pygame.KMOD_CTRL:
+							self.human_action = 6
+						else:
+							self.human_action = 0
+
 					elif event.key == pygame.K_b:
-						self.human_action = 1
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 13
+						elif mods & pygame.KMOD_CTRL:
+							self.human_action = 7
+						else:
+							self.human_action = 1
+
 					elif event.key == pygame.K_u:
-						self.human_action = 2
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 14
+						elif mods & pygame.KMOD_CTRL:
+							self.human_action = 8
+						else:
+							self.human_action = 2
+
 					elif event.key == pygame.K_d:
-						self.human_action = 3
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 15
+						elif mods & pygame.KMOD_CTRL:
+							self.human_action = 9
+						else:
+							self.human_action = 3
+
 					elif event.key == pygame.K_l:
-						self.human_action = 4
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 16
+						elif mods & pygame.KMOD_CTRL:
+							self.human_action = 10
+						else:
+							self.human_action = 4
+
 					elif event.key == pygame.K_r:
-						self.human_action = 5
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 17
+						elif mods & pygame.KMOD_CTRL:
+							self.human_action = 11
+						else:
+							self.human_action = 5
+
+					elif event.key == pygame.K_m:
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 21
+						else:
+							self.human_action = 18
+
+					elif event.key == pygame.K_e:
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 22
+						else:
+							self.human_action = 19
+
+					elif event.key == pygame.K_s:
+						if mods & pygame.KMOD_SHIFT:
+							self.human_action = 23
+						else:
+							self.human_action = 20
 
 		action = self.get_human_action()
 		self.action(action)

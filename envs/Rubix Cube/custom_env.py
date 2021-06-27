@@ -4,21 +4,22 @@ import numpy as np
 from cube2d import Pygame2D
 
 class CustomEnv(gym.Env):
-	def __init__(self, grid_size=10, mode='bot'):
+	def __init__(self, mode='bot', level=200):
 		'''Set the action and observation spaces
 		Initialise the pygame object'''
 		super().__init__()
 		self.mode = mode
-		self.grid_size = grid_size
-		self.pygame = Pygame2D(self.grid_size, mode=self.mode)
-		self.action_space = spaces.Discrete(4)		# 0-->front, 1-->left, 2-->back, 3-->right
-		self.observation_space = spaces.MultiDiscrete([5 for _ in range(self.grid_size*self.grid_size)])
+		self.level = level
+		self.pygame = Pygame2D(mode=self.mode, level=self.level)
+		self.description = self.pygame.description
+		self.action_space = spaces.Discrete(24)
+		self.observation_space = spaces.MultiDiscrete([6 for _ in range(6*3*3)])	# 1 for each of the 6 faces
 
 	def reset(self):
 		'''Re-initialise the pygame object
 		Return -> starting state of env'''
 		del self.pygame 
-		self.pygame = Pygame2D(self.grid_size, mode=self.mode)
+		self.pygame = Pygame2D(mode=self.mode, level=self.level)
 		obs = self.pygame.observe()
 		return obs
 

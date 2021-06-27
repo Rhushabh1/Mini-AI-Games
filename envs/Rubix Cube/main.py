@@ -11,6 +11,7 @@ def play_agent(env, max_episodes, max_try):
 		score = 0
 		for t in range(max_try):
 			action = env.action_space.sample()
+			print(action)
 			next_state, reward, done, info = env.step(action)
 			score += reward
 			env.render()
@@ -25,7 +26,6 @@ def play_human(env, max_episodes, max_try):
 	total_scores = []
 
 	for i_episode in range(max_episodes):
-		env.reset()
 		score, done, info = env.play(max_try)
 		total_scores.append(score)
 		print("Episode:{}\tReward:{}".format(i_episode+1, score))
@@ -34,14 +34,19 @@ def play_human(env, max_episodes, max_try):
 if __name__ == "__main__":
 	MAX_EPISODES = 30
 	MAX_TRY = 10000
-	GRID_SIZE = 10
+	LEVEL = 10
 
 	parser = argparse.ArgumentParser(description='Process some integers.')
 	parser.add_argument('--mode', metavar='M', type=str, default='bot', help='Enter Game mode ["bot", "human"]')
+	parser.add_argument('--eps', metavar='E', type=int, default=MAX_EPISODES, help='Number of games to play')
+	parser.add_argument('--lvl', metavar='L', type=int, default=LEVEL, help='Complexity of the initial scramble')
 	args = parser.parse_args()
+	MAX_EPISODES = args.eps
+	LEVEL = args.lvl
 
-	env = CustomEnv(GRID_SIZE, args.mode)
+	env = CustomEnv(args.mode, LEVEL)
 	if args.mode == 'human':
+		print(env.description)
 		total_scores = play_human(env, MAX_EPISODES, MAX_TRY)
 	else:
 		total_scores = play_agent(env, MAX_EPISODES, MAX_TRY)
