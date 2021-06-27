@@ -39,7 +39,6 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Process some integers.')
 	parser.add_argument('--mode', metavar='M', type=str, default='bot', help='Enter Game mode ["bot", "human"]')
 	args = parser.parse_args()
-	print(args.mode)
 
 	env = CustomEnv(GRID_SIZE, args.mode)
 	if args.mode == 'human':
