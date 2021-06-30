@@ -30,10 +30,8 @@ class Engine_2048:
 		self.reached_goal = False
 
 		self.insert_choice = [1, 2, 3]			# [2, 4, 8]
-		self.insert_probs = [0.5, 0.3, 0.2]
-
-		self.insert()
-		self.insert()
+		self.insert_probs = [0.7, 0.2, 0.1]
+		self.insert_cell()
 
 	def find_empty_cells(self):
 		'''returns an empty cell coordinates'''
@@ -41,14 +39,14 @@ class Engine_2048:
 		i = random.randrange(xs.size)
 		return (xs[i], ys[i])
 
-	def check_stuck(self,grid,i,j):
+	def check_stuck(self):
 		'''stuck when the there are no possible moves left'''
-		pass
-		# xs, ys = np.where(self.grid==0)
-		# if xs.size>0:
-		# 	self.is_stuck == False
-		# else:
-		# 	self.is_full == True
+		for i in range(4):
+			dirn = self.dir_dict[i]
+			success = self.shift(dirn, test=True)
+			if success:
+				return False
+		return True
 
 	def check_goal(self):
 		'''check if 2048 is reached'''
@@ -64,30 +62,23 @@ class Engine_2048:
 		n = np.random.choice(self.insert_choice, p=self.insert_probs)
 		self.grid[x, y] = n
 
-	# def placed(self,grid):
-	# 	row = random.randrange(self.grid.shape[0])
-	# 	column = random.randrange(self.grid.shape[0])
-
-	# 	if not (self.grid[row,column]):
-	# 		self.grid[row,column] = pow(2,1)
-	# 		# self.is_placed = True
-	# 	else:
-	# 		# self.is_placed = False
-	# 		placed(self.grid)
-
-	def merge(self, dirn):
+	def shift(self, dirn, test=False):
+		'''test=True -> change self.grid
+		else -> dont alter self.grid'''
 		for i in range(len(self.grid)):
 			for j in range(len(self.grid)):
-				if(self.grid[i,j]==self.grid[i+dirn[0],j+dirn[1]] and self.grid[i,j]!=0):
+				if (self.grid[i,j]==self.grid[i+dirn[0],j+dirn[1]] and self.grid[i,j]!=0):
 					self.grid[i,j]*=2
-					self.grid[i+dirn[0],i+dirn[1]]=0
+					self.grid[i+dirn[0],j+dirn[1]]=0
 
 		# return merge successful bool
 
 	def move(self, action):
 		'''shift the cells using input action'''
 		dirn = self.dir_dict[action]
-		self.action_called = merge(dirn)
+		self.action_called = shift(dirn)
+		if self.action_called:
+			self.insert_cell()
 
 	def update(self):
 		if self.action_called:
@@ -125,7 +116,7 @@ class Engine_2048:
 
 		# self.placed(self.grid)
 
-	def draw(self, screen):
+	def draw(self, screen, font):
 		'''draw the snake and food on the screen'''
 		screen.fill((0, 0, 0))
 		# screen.blit(self.path_img, (y*self.cell_width, x*self.cell_height))
