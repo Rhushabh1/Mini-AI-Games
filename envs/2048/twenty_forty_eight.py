@@ -17,7 +17,7 @@ class Tester:
 							  [0,0,0,0],
 							  [0,0,0,0]] , dtype='int32')
 
-		self.my_rows, self.my_cols = grid.shape
+		# self.my_rows, self.my_cols = self.grid.shape
 		# self.assign_grid = [[0]*my_cols]*my_rows
 
 		# self.nos = list(range(1,11))
@@ -35,9 +35,9 @@ class Tester:
 		self.cell_width = SCREEN_WIDTH//GRID_SIZE
 		self.cell_height = SCREEN_HEIGHT//GRID_SIZE
 
-		self.row = random.randint(0,4)
-		self.column = random.randint(0,4)
-		self.grid[row,column] = pow(2,nos[1])
+		self.row = random.randrange(self.grid.shape[0])
+		self.column = random.randrange(self.grid.shape[0])
+		self.grid[self.row,self.column] = pow(2,1)
 
 		self.has_collided = False
 		self.is_full = False
@@ -45,10 +45,10 @@ class Tester:
 
 
 	def placed(self,grid):
-		self.row = random.randint(0,4)
-		self.column = random.randint(0,4)
+		row = random.randrange(self.grid.shape[0])
+		column = random.randrange(self.grid.shape[0])
 
-		if(!self.assign_grid[row,column]):
+		if not (self.grid[row,column]):
 			self.grid[row,column] = pow(2,1)
 			# self.is_placed = True
 		else:
@@ -88,9 +88,9 @@ class Tester:
 			for y in range(len(self.grid)):
 				temp_y = y
 
-				while(!has_collided):
-					check_full(self.grid,x,y)
-					if(!is_full):
+				while not (self.has_collided):
+					self.check_full(self.grid,x,y)
+					if not (self.is_full):
 
 						temp_value = self.grid[temp_x,temp_y]
 						temp_x+=dirn[0]
@@ -103,12 +103,12 @@ class Tester:
 							if self.grid[x,y] == 0 or self.grid[temp_x,temp_y] != 0:
 								continue
 							else:
-								merge(self.grid,dirn)
+								self.merge(self.grid,dirn)
 								self.grid[temp_x,temp_y] = temp_value
 
 				self.has_collided = False
 
-		placed(self.grid)
+		self.placed(self.grid)
 
 
 

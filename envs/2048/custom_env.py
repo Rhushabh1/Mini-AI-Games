@@ -1,7 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
-from maze_test import Pygame2D
+from twenty_forty_eight import Pygame2D
 
 class CustomEnv(gym.Env):
 	def __init__(self, grid_size=10, mode='bot'):
