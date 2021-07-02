@@ -16,10 +16,10 @@ class Engine_2048:
 		Convert powers (x) to (2^x) in draw function'''
 		self.grid = np.zeros((GRID_SIZE, GRID_SIZE)).astype('int32')
 		
-		self.dir_dict = {0: [-1, 0],		# up
-						 1: [0, -1],		# left
-						 2: [1, 0],			# down
-						 3: [0, 1]}			# right
+		self.dir_dict = {0: [1, 1],			# up
+						 1: [0, 1],			# left
+						 2: [1, -1],		# down
+						 3: [0, -1]}		# right
 
 		self.cell_width = SCREEN_WIDTH//GRID_SIZE
 		self.cell_height = SCREEN_HEIGHT//GRID_SIZE
@@ -33,14 +33,11 @@ class Engine_2048:
 		self.insert_probs = [0.7, 0.2, 0.1]
 		self.insert_cell()
 
-	def find_empty_cells(self):
-		'''returns an empty cell coordinates'''
-		xs, ys = np.where(self.grid==0)
-		i = random.randrange(xs.size)
-		return (xs[i], ys[i])
-
 	def check_stuck(self):
 		'''stuck when the there are no possible moves left'''
+		xs, ys = np.where(self.grid==0)
+		if xs.size>0:
+			return False
 		for i in range(4):
 			dirn = self.dir_dict[i]
 			success = self.shift(dirn, test=True)
@@ -58,25 +55,55 @@ class Engine_2048:
 
 	def insert_cell(self):
 		'''place a number from [2, 4, 8] randomly in an empty cell'''
-		x, y = self.find_empty_cells()
+		xs, ys = np.where(self.grid==0)
+		if xs.size==0:
+			return
+		i = random.randrange(xs.size)
 		n = np.random.choice(self.insert_choice, p=self.insert_probs)
-		self.grid[x, y] = n
+		self.grid[xs[i], ys[i]] = n
 
 	def shift(self, dirn, test=False):
 		'''test=True -> change self.grid
 		else -> dont alter self.grid'''
-		for i in range(len(self.grid)):
-			for j in range(len(self.grid)):
-				if (self.grid[i,j]==self.grid[i+dirn[0],j+dirn[1]] and self.grid[i,j]!=0):
-					self.grid[i,j]*=2
-					self.grid[i+dirn[0],j+dirn[1]]=0
+		x, y = dirn
+		tmp_grid = self.grid.copy()
+		if x:
+			tmp_grid = tmp_grid.T
+		tmp_grid = tmp_grid[::1, ::y]
+
+		# default = RIGHT 
+		for i in range(self.grid.shape[0]):
+			row = self.grid[i]
+			# shift
+			tmp_list = [j for j in row if j!=0]
+			tmp_list.extend( [0]*(row.size - len(tmp_list)) )
+			# merge
+			for j in range(1, len(tmp_list)):
+				if tmp_list[j]==tmp_list[j-1] and tmp_list[j]!=0:
+					tmp_list[j-1]+=1
+					tmp_list[j] = 0
+			# shift
+			tmp_list = [j for j in row if j!=0]
+			tmp_list.extend( [0]*(row.size - len(tmp_list)) )
+
+			tmp_grid[i] = np.array(tmp_list)
+
+		if x:
+			tmp_grid = tmp_grid.T
+		tmp_grid = tmp_grid[::1, ::y]
+		
+		if (self.grid==tmp_grid).all():
+			return False
+		if not test:
+			self.grid = tmp_grid
+		return True
 
 		# return merge successful bool
 
 	def move(self, action):
 		'''shift the cells using input action'''
 		dirn = self.dir_dict[action]
-		self.action_called = shift(dirn)
+		self.action_called = self.shift(dirn)
 		if self.action_called:
 			self.insert_cell()
 
@@ -119,6 +146,7 @@ class Engine_2048:
 	def draw(self, screen, font):
 		'''draw the snake and food on the screen'''
 		screen.fill((0, 0, 0))
+		print(self.grid)
 		# screen.blit(self.path_img, (y*self.cell_width, x*self.cell_height))
 
 
@@ -230,7 +258,7 @@ class Pygame2D:
 		reward = self.evaluate()
 		done = self.is_done()
 
-		self.engine.draw(self.screen)
+		self.engine.draw(self.screen, self.font)
 		pygame.display.flip()
 		self.clock.tick(self.game_speed)
 
