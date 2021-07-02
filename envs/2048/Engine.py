@@ -28,6 +28,8 @@ class Engine_2048:
 		self.action_called = False
 		self.is_stuck = False
 		self.reached_goal = False
+		self.has_collided = False
+		self.has_merged = False
 
 		self.insert_choice = [1, 2, 3]			# [2, 4, 8]
 		self.insert_probs = [0.7, 0.2, 0.1]
@@ -41,6 +43,9 @@ class Engine_2048:
 
 	def check_stuck(self):
 		'''stuck when the there are no possible moves left'''
+		xs, ys = np.where(self.grid==0)
+		if xs.size>0:
+			return False
 		for i in range(4):
 			dirn = self.dir_dict[i]
 			success = self.shift(dirn, test=True)
@@ -65,18 +70,57 @@ class Engine_2048:
 	def shift(self, dirn, test=False):
 		'''test=True -> change self.grid
 		else -> dont alter self.grid'''
+		test_grid = self.grid.copy()
 		for i in range(len(self.grid)):
+			temp_x = i
 			for j in range(len(self.grid)):
-				if (self.grid[i,j]==self.grid[i+dirn[0],j+dirn[1]] and self.grid[i,j]!=0):
-					self.grid[i,j]*=2
-					self.grid[i+dirn[0],j+dirn[1]]=0
+				temp_y = j
+				# print(i,j)
+				if(test_grid[i,j]==0):
+					continue
+				temp = test_grid[i,j]
+				while not (self.has_collided): #or self.has_merged):
+					temp_x+=dirn[0]
+					temp_y+=dirn[1]
+
+					if not (temp_x >= len(test_grid) or temp_x < 0 or temp_y >= len(test_grid) or temp_y < 0):
+						print(1)
+						
+						if (test_grid[temp_x,temp_y]!=0 and test_grid[temp_x,temp_y]!=test_grid[temp_x-dirn[0],temp_y-dirn[1]]):
+							print(2)
+							continue
+						
+						elif (test_grid[temp_x,temp_y]==test_grid[temp_x-dirn[0],temp_y-dirn[1]] and test_grid[temp_x,temp_y]!=0):
+							print(3)
+							test_grid[temp_x,temp_y]+=1
+							test_grid[temp_x-dirn[0],temp_y-dirn[1]]=0
+							#self.has_merged = True
+						else:
+							print(4)
+							test_grid[temp_x,temp_y] = temp
+							test_grid[temp_x-dirn[0],temp_y-dirn[1]] = 0
+							print("grid = \n",test_grid)
+							print("temp_x,temp_y = ",temp_x,temp_y)
+							print("temp_x-dirn[0],temp_y-dirn[1] = ",temp_x-dirn[0],temp_y-dirn[1])
+					else:
+						self.has_collided = True
+
+				self.has_collided = False
+				#self.has_merged = False
+
+		if(self.grid==test_grid).all():
+			return False
+		if not (test):
+			self.grid = test_grid
+		return True
+
 
 		# return merge successful bool
 
 	def move(self, action):
 		'''shift the cells using input action'''
 		dirn = self.dir_dict[action]
-		self.action_called = shift(dirn)
+		self.action_called = self.shift(dirn)
 		if self.action_called:
 			self.insert_cell()
 
@@ -120,6 +164,7 @@ class Engine_2048:
 		'''draw the snake and food on the screen'''
 		screen.fill((0, 0, 0))
 		# screen.blit(self.path_img, (y*self.cell_width, x*self.cell_height))
+		print(self.grid)
 
 
 class Pygame2D:
@@ -230,7 +275,7 @@ class Pygame2D:
 		reward = self.evaluate()
 		done = self.is_done()
 
-		self.engine.draw(self.screen)
+		self.engine.draw(self.screen,self.font)
 		pygame.display.flip()
 		self.clock.tick(self.game_speed)
 

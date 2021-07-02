@@ -1,7 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
-from 2048_2d import Pygame2D
+from Engine import Pygame2D
 
 class CustomEnv(gym.Env):
 	def __init__(self, grid_size=10, mode='bot'):
