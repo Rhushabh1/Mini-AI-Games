@@ -1,6 +1,7 @@
 import pygame
 import random
 import numpy as np
+from cube3d import cube_3d
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
@@ -81,7 +82,12 @@ class Cube:
 		}
 
 		self.good_corners = [0, 2, 5, 7]				# good -> (R/O)(B/G)(W/Y), bad -> (R/O)(W/Y)(B/G)
-		self.even_corners = np.array([0, 1, 0, 1])		
+		self.even_corners = np.array([0, 1, 0, 1])	
+		'''
+		0---1
+			|
+		1---0
+		'''	
 
 		self.level = level
 		self.is_solved = True
@@ -95,6 +101,8 @@ class Cube:
 	def scramble_cube(self):
 		# scramble the cube for the player to solve
 		seq = []
+		# max(5, 8) = 8
+		# choice([0, 1, 2, ,,,,23], 8, replace=True) -> moves = [5, 2, 9, 19, 6, 5, 3, 1] => [R, U, D, D, U, D, D, D, ] = SEQ
 		moves = np.random.choice(24, max(5, random.randrange(self.level)), replace=True)
 		for move in moves:
 			seq.extend(self.moves[move])
@@ -103,6 +111,7 @@ class Cube:
 		self.is_solved = False
 
 	def move(self, action_list):
+		# [R, U, D, D, U, D, D, D, ] 
 		'''move faces according the action
 		Corners:
 			(C) clockwise = 0->1->2->...
@@ -196,9 +205,14 @@ class Cube:
 			for i in range(face.shape[0]):
 				for j in range(face.shape[1]):
 					x, y = idx%3, idx//3
+					# [0, 1, 2]
+					# [3, 4, 5]
 					pygame.draw.rect(screen, 
 									colors[ face[i][j] ], 
 									(3*self.side*x + self.side*j, 3*self.side*y + self.side*i, self.side, self.side))
+
+		if self.has_moved:
+			cube_3d(self.cube)
 
 
 class Pygame2D:

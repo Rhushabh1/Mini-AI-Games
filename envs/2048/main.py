@@ -34,7 +34,7 @@ def play_human(env, max_episodes, max_try):
 if __name__ == "__main__":
 	MAX_EPISODES = 30
 	MAX_TRY = 10000
-	GRID_SIZE = 10
+	GRID_SIZE = 6
 
 	parser = argparse.ArgumentParser(description='Process some integers.')
 	parser.add_argument('--mode', metavar='M', type=str, default='bot', help='Enter Game mode ["bot", "human"]')

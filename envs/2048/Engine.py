@@ -71,9 +71,9 @@ class Engine_2048:
 		'''test=True -> change self.grid
 		else -> dont alter self.grid'''
 		test_grid = self.grid.copy()
-		for i in range(len(self.grid)):
+		for i in range(self.grid.shape[0]):
 			temp_x = i
-			for j in range(len(self.grid)):
+			for j in range(self.grid.shape[0]):
 				temp_y = j
 				# print(i,j)
 				if(test_grid[i,j]==0):
