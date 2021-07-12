@@ -89,7 +89,6 @@ class Engine_2048:
 	def shift(self, dirn, test=False):
 		'''test=True -> change self.grid
 		else -> dont alter self.grid'''
-
 		x, y = dirn
 		tmp_grid = self.grid.copy()
 		if x:
